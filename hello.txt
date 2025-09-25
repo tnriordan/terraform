@@ -1,1 +1,1 @@
-Hello, Terraform! 🚀, version 2
+Hello from tfvars!
