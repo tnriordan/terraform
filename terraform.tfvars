@@ -1,4 +1,0 @@
-message = "Hello from tfvars!"
-app_name = "awesomeapp"
-app_port = 9090
-

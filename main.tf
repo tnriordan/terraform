@@ -1,30 +1,58 @@
 terraform {
   required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.0"
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = ">= 3.0.0"
     }
   }
 }
 
-provider "local" {}
+provider "docker" {}
 
-variable "message" {
-  description = "Message to write into the hello.txt file"
-  type        = string
-  default     = "Hello, Terraform!"
+resource "docker_container" "nginx" {
+  for_each = var.nginx_containers
+
+  name    = each.key
+  image   = each.value.image
+  command = each.value.command
+  restart = "always"
+
+  dynamic "ports" {
+    for_each = each.value.ports
+    content {
+      internal = tonumber(split(":", ports.value)[1])
+      external = tonumber(split(":", ports.value)[0])
+    }
+  }
 }
 
-resource "local_file" "hello" {
-  filename = "${path.module}/hello.txt"
-  content  = var.message
+# One-off container, not tied to variables.tf
+resource "docker_container" "nginx_extra" {
+  name  = "nginx-test-tf-2"
+  image = "nginx:stable"
+
+  ports {
+    internal = 80
+    external = 8090
+  }
 }
 
-resource "local_file" "app_config" {
-  content  = <<EOF
-  app_name = "${var.app_name}"
-  app_port = "${var.app_port}"
-  EOF
-  filename = "./${var.app_name}.conf"
+resource "docker_container" "postgres" {
+  for_each = var.postgres_containers
+
+  name    = each.key
+  image   = each.value.image
+  command = each.value.command
+  restart = "always"
+
+  env = [for k, v in each.value.env : "${k}=${v}"]
+
+  dynamic "ports" {
+    for_each = each.value.ports
+    content {
+      internal = tonumber(split(":", ports.value)[1])
+      external = tonumber(split(":", ports.value)[0])
+    }
+  }
 }
 

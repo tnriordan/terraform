@@ -1,12 +1,36 @@
-variable "app_name" {
-  description = "Name of the app"
-  type        = string
-  default     = "myapp"
+variable "nginx_containers" {
+  type = map(object({
+    image   = string
+    command = list(string)
+    ports   = list(string)
+  }))
+  default = {
+    nginx-test-tf-1 = {
+      image   = "nginx:latest"
+      command = ["bash", "-c", "sleep infinity"]
+      ports   = ["8083:80"]
+    }
+  }
 }
 
-variable "app_port" {
-  description = "Port for the app"
-  type        = number
-  default     = 8080
+variable "postgres_containers" {
+  type = map(object({
+    image   = string
+    command = list(string)
+    env     = map(string)
+    ports   = list(string)
+  }))
+  default = {
+    pgs-test-tf-1 = {
+      image   = "postgres:latest"
+      command = ["bash", "-c", "sleep infinity"]
+      env     = {
+        POSTGRES_USER     = "postgres"
+        POSTGRES_PASSWORD = "postgres"
+        POSTGRES_DB       = "ansibledb"
+      }
+      ports   = ["5433:5432"]
+    }
+  }
 }
 
